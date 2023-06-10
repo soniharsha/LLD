@@ -6,7 +6,5 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class Task {
-
-    private int stoppageLevel;
-    private Direction directionOfDesiredDestinationFromCurrentLevel;
+    private int destinationLevel;
 }

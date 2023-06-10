@@ -33,9 +33,9 @@ public class CacheApplication {
 
 
         List<Thread> threads = new ArrayList<>();
-        final int numOfThreads = 1000;
+        final int numOfThreads = 3;
 
-        for (int i = 0; i < numOfThreads; i++) {
+//        for (int i = 0; i < numOfThreads; i++) {
             threads.add(new Thread(()-> {
 //                try {
 //                    Thread.sleep(50);
@@ -58,10 +58,10 @@ public class CacheApplication {
             threads.add(new Thread(()-> {
                 System.out.println(cacheService.get("A"));
             }));
-        }
+//        }
 
         for (int i = 0; i < threads.size(); i++) {
-            threads.get(i).run();
+            threads.get(i).start();
         }
 
 //        t1.run();

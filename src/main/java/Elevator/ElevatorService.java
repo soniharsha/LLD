@@ -3,32 +3,43 @@ package Elevator;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class ElevatorService implements ElevatorObserver {
+public class ElevatorService {
+    private long lastExternalRequestTime = System.currentTimeMillis();
     private Elevator elevator;
-    private Queue<Task> queuedTasks;
-
+    private Queue<Task> internalTasks;
+    private Queue<Task> externalTasks;
     public ElevatorService(Elevator elevator) {
         this.elevator = elevator;
-        this.queuedTasks = new LinkedList<>();
-        this.elevator.addObserver(this);
-
+        this.externalTasks =  new LinkedList<>();
+        this.internalTasks =  new LinkedList<>();
     }
 
-    public void executeRequestTask(Task task) {
-        if(elevator.isRunning() && elevator.canExecuteTaskWithOngoingTask(task)) {
-            elevator.executeTask(task);
-        } else {
-            queuedTasks.add(task);
-            elevator.startFreshTask(task);
+    public void executeInternalTask(Task task) {
+        this.internalTasks.add(task);
+    }
+
+    public void executeExternalTask(Task task) {
+        this.externalTasks.add(task);
+    }
+    public void executeNextTask() {
+        while(true) {
+            if (elevator.isRunning()) {
+                while (!internalTasks.isEmpty()) {
+                    Task task = internalTasks.poll();
+                    elevator.executeTask(task);
+                }
+                if (lastExternalRequestTime < System.currentTimeMillis() - 2000) {
+                    elevator.updateStateOnCompletionOfInternalRequest();
+                }
+            } else {
+                if (!externalTasks.isEmpty() && !elevator.isRunning()) {
+                    lastExternalRequestTime = System.currentTimeMillis();
+                    Task task = externalTasks.poll();
+                    elevator.executeTask(task);
+                }
+            }
+            if (internalTasks.isEmpty() && externalTasks.isEmpty()) elevator.updateStateOnCompletionOfAllRequest();
         }
     }
 
-    @Override
-    public void elevatorFinishedWorking() {
-        queuedTasks.poll();
-        if(!queuedTasks.isEmpty()) {
-            Task curTask = queuedTasks.poll();
-            elevator.startFreshTask(curTask);
-        }
-    }
 }
